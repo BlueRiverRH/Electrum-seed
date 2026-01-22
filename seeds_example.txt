@@ -1,0 +1,10 @@
+# Example seed file for batch_seed_test.py
+# Lines starting with # are comments
+# Put one seed phrase per line
+
+# Example seeds (these are just examples, not real seeds):
+# abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about
+# zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong
+
+# Your seeds here:
+

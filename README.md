@@ -19,6 +19,22 @@ This repository provides tools for **Electrum wallet seed generation and recover
 
 ### Installation Steps
 
+#### Quick Installation (Recommended)
+
+```bash
+git clone https://github.com/BlueRiverRH/Electrum-seed.git
+cd Electrum-seed
+./install.sh
+```
+
+The installation script will:
+- Clone Electrum repository
+- Install Electrum dependencies
+- Copy seed tools to the Electrum directory
+- Verify the installation
+
+#### Manual Installation
+
 1. **Clone Electrum:**
    ```bash
    git clone https://github.com/spesmilo/electrum.git
@@ -42,7 +58,12 @@ This repository provides tools for **Electrum wallet seed generation and recover
 
 4. **Make scripts executable:**
    ```bash
-   chmod +x electrum_seed_gen.py electrum_seed_recovery.py
+   chmod +x *.py
+   ```
+
+5. **Verify installation:**
+   ```bash
+   python3 setup_check.py
    ```
 
 ## Tools
@@ -167,6 +188,53 @@ Similar words in Electrum wordlist:
   - about
   - absence
 ```
+
+### 3. Batch Seed Tester (`batch_seed_test.py`)
+
+Test multiple seed phrases from a file efficiently.
+
+**Usage:**
+```bash
+# Test seeds from file
+python3 batch_seed_test.py seeds.txt
+
+# Test segwit seeds
+python3 batch_seed_test.py seeds.txt --type segwit
+
+# Save valid seeds to output file
+python3 batch_seed_test.py seeds.txt --output valid_seeds.txt
+```
+
+**Features:**
+- Batch test hundreds or thousands of seeds
+- Support for different seed types (standard/segwit/2fa)
+- Progress reporting for large files
+- Save valid seeds to output file
+
+**Input file format:**
+```
+# Comments start with #
+seed phrase one here
+seed phrase two here
+seed phrase three here
+```
+
+See `seeds_example.txt` for template.
+
+### 4. Setup Checker (`setup_check.py`)
+
+Verify that your environment is correctly configured.
+
+**Usage:**
+```bash
+python3 setup_check.py
+```
+
+Checks:
+- Python version
+- Electrum module availability
+- Wordlist accessibility
+- Tool scripts presence
 
 ## How It Works
 
