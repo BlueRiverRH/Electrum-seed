@@ -118,9 +118,9 @@ def test_seed_utilities():
     
     # Test calculate_seed_entropy
     entropy_12 = calculate_seed_entropy(12)
-    assert entropy_12 == 132, f"Expected 132 bits for 12 words, got {entropy_12}"
+    assert entropy_12 == 128, f"Expected 128 bits for 12 words, got {entropy_12}"
     entropy_24 = calculate_seed_entropy(24)
-    assert entropy_24 == 264, f"Expected 264 bits for 24 words, got {entropy_24}"
+    assert entropy_24 == 256, f"Expected 256 bits for 24 words, got {entropy_24}"
     print("  ✓ Entropy calculation works")
 
 

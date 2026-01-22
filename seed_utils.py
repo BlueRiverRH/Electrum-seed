@@ -192,14 +192,25 @@ def calculate_seed_entropy(num_words: int) -> int:
     """
     Calculate the entropy (in bits) for a given number of words.
     
+    Note: This returns the actual entropy bits, not including the checksum.
+    BIP39 uses: 12 words = 128 bits entropy + 4 bits checksum
+                24 words = 256 bits entropy + 8 bits checksum
+    
     Args:
         num_words: Number of words in seed phrase
         
     Returns:
-        Entropy in bits
+        Entropy in bits (excluding checksum)
     """
-    # Each word represents 11 bits in BIP39
-    return num_words * 11
+    # Standard BIP39 entropy (excluding checksum)
+    entropy_map = {
+        12: 128,
+        15: 160,
+        18: 192,
+        21: 224,
+        24: 256
+    }
+    return entropy_map.get(num_words, num_words * 11)  # Fallback to total bits if non-standard
 
 
 def estimate_combinations(num_unknown: int, wordlist_size: int = 2048) -> int:

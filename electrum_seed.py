@@ -164,10 +164,10 @@ class ElectrumSeed:
     including generation, validation, and recovery.
     """
     
-    # Electrum version prefixes
-    ELECTRUM_V2_STANDARD = '01'
-    ELECTRUM_V2_2FA = '101'
-    ELECTRUM_V2_SEGWIT = '100'
+    # Electrum version prefixes (for reference)
+    # Standard wallet: version byte & 0xF0 == 0x00
+    # 2FA wallet: version byte & 0xF0 == 0x10
+    # Segwit wallet: version byte & 0xF0 == 0x10
     
     def __init__(self, wordlist: Optional[List[str]] = None):
         """
@@ -236,13 +236,12 @@ class ElectrumSeed:
         # Check for standard, 2FA, or segwit versions
         return (version_byte & 0xF0) in [0x00, 0x10]
     
-    def generate_seed(self, num_words: int = 12, seed_type: str = 'standard') -> str:
+    def generate_seed(self, num_words: int = 12) -> str:
         """
         Generate a new Electrum seed phrase.
         
         Args:
             num_words: Number of words in seed (12 or 24)
-            seed_type: Type of seed ('standard', '2fa', or 'segwit')
             
         Returns:
             Generated seed phrase
@@ -253,11 +252,15 @@ class ElectrumSeed:
         if num_words not in [12, 24]:
             raise ValueError("Number of words must be 12 or 24")
         
+        # BIP39 entropy: 12 words = 128 bits entropy, 24 words = 256 bits entropy
+        # (Plus checksum: 12 words = 4 bits, 24 words = 8 bits)
+        entropy_bits = 128 if num_words == 12 else 256
+        entropy_bytes = entropy_bits // 8
+        
         # Generate random seeds until we find a valid Electrum seed
         max_attempts = 10000
         for _ in range(max_attempts):
             # Generate random entropy
-            entropy_bytes = num_words * 11 // 8  # BIP39 entropy calculation
             entropy = os.urandom(entropy_bytes)
             
             # Convert entropy to word indices
@@ -299,12 +302,18 @@ class ElectrumSeed:
         """
         Attempt to complete a partial seed phrase.
         
+        WARNING: This is a demonstration implementation with significant limitations.
+        It only searches the first 100 words of the wordlist for performance reasons.
+        For real seed recovery with missing words, use specialized tools like:
+        - btcrecover (https://github.com/gurnec/btcrecover)
+        - seedrecover.py from Electrum
+        
         Args:
             partial_seed: Partial seed with missing words (use '?' for unknown words)
             known_positions: Optional list of positions that are known to be correct
             
         Returns:
-            List of possible valid seed completions
+            List of possible valid seed completions (limited results)
         """
         words = partial_seed.strip().lower().split()
         unknown_positions = [i for i, word in enumerate(words) if word == '?']
@@ -345,8 +354,10 @@ class ElectrumSeed:
             return
         
         # Try each word in the wordlist for this position
+        # Note: This is computationally expensive for many unknown words
+        # For better performance with many unknowns, consider specialized recovery tools
         position = unknown_positions[pos_idx]
-        for word in self.wordlist[:100]:  # Limit to first 100 words for performance
+        for word in self.wordlist[:100]:  # Limited to first 100 for demonstration
             words[position] = word
             self._complete_recursive(words, unknown_positions, pos_idx + 1, results, max_results)
     

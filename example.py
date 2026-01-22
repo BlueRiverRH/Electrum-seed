@@ -32,7 +32,7 @@ def example_generate_seed():
     
     # Calculate entropy
     entropy = calculate_seed_entropy(12)
-    print(f"Entropy: {entropy} bits")
+    print(f"Entropy: {entropy} bits (128 bits entropy + 4 bits checksum)")
 
 
 def example_validate_seed():

@@ -162,10 +162,9 @@ python3 -c "from electrum_seed import ElectrumSeed; print(ElectrumSeed().generat
 #### `__init__(wordlist=None)`
 Initialize the seed generator with an optional custom wordlist.
 
-#### `generate_seed(num_words=12, seed_type='standard')`
+#### `generate_seed(num_words=12)`
 Generate a new Electrum seed phrase.
 - `num_words`: Number of words (12 or 24)
-- `seed_type`: Type of seed ('standard', '2fa', or 'segwit')
 - Returns: Generated seed phrase string
 
 #### `is_electrum_seed(seed)`
@@ -190,10 +189,12 @@ Find words in the wordlist similar to the given word.
 - Returns: List of similar words
 
 #### `complete_seed(partial_seed, known_positions=None)`
-Attempt to complete a partial seed phrase (experimental).
+Attempt to complete a partial seed phrase (demonstration only - see limitations below).
 - `partial_seed`: Partial seed with missing words (use '?' for unknown)
 - `known_positions`: Optional list of positions that are known correct
 - Returns: List of possible valid seed completions
+
+**Note**: This is a demonstration implementation that only searches the first 100 words of the wordlist. For real seed recovery, use specialized tools like [btcrecover](https://github.com/gurnec/btcrecover).
 
 ## Security Considerations
 
