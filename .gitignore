@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Seed files - IMPORTANT: Never commit real seeds!
+seeds.txt
+my_seeds.txt
+recovered_seeds.txt
+valid_seeds.txt
+*_seeds.txt
+!seeds_example.txt
+
+# Test results
+results.txt
+output.txt
+
+# OS
+.DS_Store
+Thumbs.db
