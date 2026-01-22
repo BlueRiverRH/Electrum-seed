@@ -7,8 +7,6 @@ Must be run in a cloned Electrum repository to access the wordlist.
 
 import sys
 import os
-import hashlib
-import hmac
 from typing import List, Optional
 
 # This script must be run from within an Electrum clone

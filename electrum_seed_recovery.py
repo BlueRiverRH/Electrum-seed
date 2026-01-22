@@ -7,8 +7,10 @@ Must be run in a cloned Electrum repository.
 
 import sys
 import itertools
-import hashlib
 from typing import List, Optional, Set
+
+# Maximum number of permutations to try by default
+MAX_PERMUTATION_ATTEMPTS = 1000000
 
 # This script must be run from within an Electrum clone
 try:
@@ -36,11 +38,11 @@ class ElectrumSeedRecovery:
         """Check if seed is valid"""
         try:
             return self.mnemonic.is_seed(seed, prefix=seed_type)
-        except:
+        except Exception:
             return False
     
     def recover_mixed_order(self, words: List[str], known_positions: dict = None, 
-                           seed_type: str = 'standard', max_attempts: int = 1000000) -> List[str]:
+                           seed_type: str = 'standard', max_attempts: int = MAX_PERMUTATION_ATTEMPTS) -> List[str]:
         """
         Recover seed when words are in wrong order.
         
@@ -242,7 +244,7 @@ def main():
                         pos_str, word = entry.split('=', 1)
                         pos = int(pos_str) - 1  # Convert to 0-indexed
                         known_positions[pos] = word.strip().lower()
-                    except:
+                    except (ValueError, IndexError):
                         print("Invalid format, use: position=word")
         
         print("\nWARNING: For 12 words, there are 12! = 479,001,600 permutations!")

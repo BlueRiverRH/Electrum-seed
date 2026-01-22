@@ -53,7 +53,7 @@ class BatchSeedTester:
         try:
             with open(filename, 'r') as f:
                 seeds = f.readlines()
-        except Exception as e:
+        except (IOError, OSError) as e:
             print(f"Error reading file: {e}")
             return []
         
@@ -84,7 +84,7 @@ class BatchSeedTester:
                     for seed in valid_seeds:
                         f.write(seed + '\n')
                 print(f"Valid seeds written to: {output_file}")
-            except Exception as e:
+            except (IOError, OSError) as e:
                 print(f"Error writing output file: {e}")
         
         return valid_seeds
