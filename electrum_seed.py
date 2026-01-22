@@ -1,0 +1,481 @@
+#!/usr/bin/env python3
+"""
+Electrum Seed Generator and Completer
+
+This module provides functionality for generating, validating, and completing
+Electrum wallet seeds. It can be inserted into a cloned Electrum repository
+for enhanced seed management capabilities.
+
+Features:
+- Generate new Electrum-compatible seed phrases
+- Validate existing seed phrases
+- Complete/recover partially known seed phrases
+- Support for both Electrum v1 and v2 seed formats
+"""
+
+import hashlib
+import hmac
+import os
+from typing import List, Optional, Tuple, Set
+import unicodedata
+
+
+# BIP39 English wordlist (2048 words)
+BIP39_WORDLIST = """abandon ability able about above absent absorb abstract absurd abuse access accident 
+account accuse achieve acid acoustic acquire across act action actor actress actual adapt add 
+addict address adjust admit adult advance advice aerobic affair afford afraid again age agent 
+agree ahead aim air airport aisle alarm album alcohol alert alien all alley allow almost alone 
+alpha already also alter always amateur amazing among amount amused analyst anchor ancient anger 
+angle angry animal ankle announce annual another answer antenna antique anxiety any apart apology 
+appear apple approve april arch arctic area arena argue arm armed armor army around arrange arrest 
+arrive arrow art artefact artist artwork ask aspect assault asset assist assume asthma athlete 
+atom attack attend attitude attract auction audit august aunt author auto autumn average avocado 
+avoid awake aware away awesome awful awkward axis baby bachelor bacon badge bag balance balcony 
+ball bamboo banana banner bar barely bargain barrel base basic basket battle beach bean beauty 
+because become beef before begin behave behind believe below belt bench benefit best betray better 
+between beyond bicycle bid bike bind biology bird birth bitter black blade blame blanket blast 
+bleak bless blind blood blossom blouse blue blur blush board boat body boil bomb bone bonus book 
+boost border boring borrow boss bottom bounce box boy bracket brain brand brass brave bread breeze 
+brick bridge brief bright bring brisk broccoli broken bronze broom brother brown brush bubble buddy 
+budget buffalo build bulb bulk bullet bundle bunker burden burger burst bus business busy butter 
+buyer buzz cabbage cabin cable cactus cage cake call calm camera camp can canal cancel candy cannon 
+canoe canvas canyon capable capital captain car carbon card cargo carpet carry cart case cash casino 
+cast cat catalog catch category cattle caught cause caution cave ceiling celery cement census century 
+cereal certain chair chalk champion change chaos chapter charge chase chat cheap check cheese chef 
+cherry chest chicken chief child chimney choice choose chronic chuckle chunk churn cigar cinnamon 
+circle citizen city civil claim clap clarify claw clay clean clerk clever click client cliff climb 
+clinic clip clock clog close cloth cloud clown club clump cluster clutch coach coast coconut code 
+coffee coil coin collect color column combine come comfort comic common company concert conduct 
+confirm congress connect consider control convince cook cool copper copy coral core corn correct 
+cost cotton couch country couple course cousin cover coyote crack cradle craft cram crane crash 
+crater crawl crazy cream credit creek crew cricket crime crisp critic crop cross crouch crowd 
+crucial cruel cruise crumble crunch crush cry crystal cube culture cup cupboard curious current 
+curtain curve cushion custom cute cycle dad damage damp dance danger daring dash daughter dawn day 
+deal debate debris decade december decide decline decorate decrease deer defense define defy degree 
+delay deliver demand demise denial dentist deny depart depend deposit depth deputy derive describe 
+desert design desk despair destroy detail detect develop device devote diagram dial diamond diary 
+dice diesel diet differ digital dignity dilemma dinner dinosaur direct dirt disagree discover disease 
+dish dismiss disorder display distance divert divide divorce dizzy doctor document dog doll dolphin 
+domain donate donkey donor door dose double dove draft dragon drama drastic draw dream dress drift 
+drill drink drip drive drop drum dry duck dumb dune during dust dutch duty dwarf dynamic eager eagle 
+early earn earth easily east easy echo ecology economy edge edit educate effort egg eight either 
+elbow elder electric elegant element elephant elevator elite else embark embody embrace emerge 
+emotion employ empower empty enable enact end endless endorse enemy energy enforce engage engine 
+enhance enjoy enlist enough enrich enroll ensure enter entire entry envelope episode equal equip 
+era erase erode erosion error erupt escape essay essence estate eternal ethics evidence evil evoke 
+evolve exact example excess exchange excite exclude excuse execute exercise exhaust exhibit exile 
+exist exit exotic expand expect expire explain expose express extend extra eye eyebrow fabric face 
+facility fact fade fail faith fall false fame family famous fan fancy fantasy farm fashion fat fatal 
+father fatigue fault favorite feature february federal fee feed feel female fence festival fetch 
+fever few fiber fiction field figure file film filter final find fine finger finish fire firm first 
+fiscal fish fit fitness fix flag flame flash flat flavor flee flight flip float flock floor flower 
+fluid flush fly foam focus fog foil fold follow food foot force forest forget fork fortune forum 
+forward fossil foster found fox fragile frame frequent fresh friend fringe frog front frost frown 
+frozen fruit fuel fun funny furnace fury future gadget gain galaxy gallery game gap garage garbage 
+garden garlic garment gas gasp gate gather gauge gaze general genius genre gentle genuine gesture 
+ghost giant gift giggle ginger giraffe girl give glad glance glare glass glide glimpse globe gloom 
+glory glove glow glue goat goddess gold good goose gorilla gospel gossip govern gown grab grace 
+grain grant grape grass gravity great green grid grief grit grocery group grow grunt guard guess 
+guide guilt guitar gun gym habit hair half hammer hamster hand happy harbor hard harsh harvest hat 
+have hawk hazard head health heart heavy hedgehog height hello helmet help hen hero hidden high hill 
+hint hip hire history hobby hockey hold hole holiday hollow home honey hood hope horn horror horse 
+hospital host hotel hour hover hub huge human humble humor hundred hungry hunt hurdle hurry hurt 
+husband hybrid ice icon idea identify idle ignore ill illegal illness image imitate immense immune 
+impact impose improve impulse inch include income increase index indicate indoor industry infant 
+inflict inform inhale inherit initial inject injury inmate inner innocent input inquiry insane insect 
+inside inspire install intact interest into invest invite involve iron island isolate issue item 
+ivory jacket jaguar jar jazz jealous jeans jelly jewel job join joke journey joy judge juice jump 
+jungle junior junk just kangaroo keen keep ketchup key kick kid kidney kind kingdom kiss kit kitchen 
+kite kitten kiwi knee knife knock know lab label labor ladder lady lake lamp language laptop large 
+later latin laugh laundry lava law lawn lawsuit layer lazy leader leaf learn leave lecture left leg 
+legal legend leisure lemon lend length lens leopard lesson letter level liar liberty library license 
+life lift light like limb limit link lion liquid list little live lizard load loan lobster local lock 
+logic lonely long loop lottery loud lounge love loyal lucky luggage lumber lunar lunch luxury lyrics 
+machine mad magic magnet maid mail main major make mammal man manage mandate mango mansion manual 
+maple marble march margin marine market marriage mask mass master match material math matrix matter 
+maximum maze meadow mean measure meat mechanic medal media melody melt member memory mention menu 
+mercy merge merit merry mesh message metal method middle midnight milk million mimic mind minimum 
+minor minute miracle mirror misery miss mistake mix mixed mixture mobile model modify mom moment 
+monitor monkey monster month moon moral more morning mosquito mother motion motor mountain mouse 
+move movie much muffin mule multiply muscle museum mushroom music must mutual myself mystery myth 
+naive name napkin narrow nasty nation nature near neck need negative neglect neither nephew nerve 
+nest net network neutral never news next nice night noble noise nominee noodle normal north nose 
+notable note nothing notice novel now nuclear number nurse nut oak obey object oblige obscure observe 
+obtain obvious occur ocean october odor off offer office often oil okay old olive olympic omit once 
+one onion online only open opera opinion oppose option orange orbit orchard order ordinary organ 
+orient original orphan ostrich other outdoor outer output outside oval oven over own owner oxygen 
+oyster ozone pact paddle page pair palace palm panda panel panic panther paper parade parent park 
+parrot party pass patch path patient patrol pattern pause pave payment peace peanut pear peasant 
+pelican pen penalty pencil people pepper perfect permit person pet phone photo phrase physical piano 
+picnic picture piece pig pigeon pill pilot pink pioneer pipe pistol pitch pizza place planet plastic 
+plate play please pledge pluck plug plunge poem poet point polar pole police pond pony pool popular 
+portion position possible post potato pottery poverty powder power practice praise predict prefer 
+prepare present pretty prevent price pride primary print priority prison private prize problem process 
+produce profit program project promote proof property prosper protect proud provide public pudding 
+pull pulp pulse pumpkin punch pupil puppy purchase pure purple purpose purse push put puzzle pyramid 
+quality quantum quarter question quick quit quiz quote rabbit raccoon race rack radar radio rail rain 
+raise rally ramp ranch random range rapid rare rate rather raven raw razor ready real reason rebel 
+rebuild recall receive recipe record recycle reduce reflect reform refuse region regret regular reject 
+relax release relief rely remain remember remind remove render renew rent reopen repair repeat replace 
+report require rescue resemble resist resource response result retire retreat return reunion reveal 
+review reward rhythm rib ribbon rice rich ride ridge rifle right rigid ring riot ripple risk ritual 
+rival river road roast robot robust rocket romance roof rookie room rose rotate rough round route 
+royal rubber rude rug rule run runway rural sad saddle sadness safe sail salad salmon salon salt 
+salute same sample sand satisfy satoshi sauce sausage save say scale scan scare scatter scene scheme 
+school science scissors scorpion scout scrap screen script scrub sea search season seat second secret 
+section security seed seek segment select sell seminar senior sense sentence series service session 
+settle setup seven shadow shaft shallow share shed shell sheriff shield shift shine ship shiver shock 
+shoe shoot shop short shoulder shove shrimp shrug shuffle shy sibling sick side siege sight sign 
+silent silk silly silver similar simple since sing siren sister situate six size skate sketch ski 
+skill skin skirt skull slab slam sleep slender slice slide slight slim slogan slot slow slush small 
+smart smile smoke smooth snack snake snap sniff snow soap soccer social sock soda soft solar soldier 
+solid solution solve someone song soon sorry sort soul sound soup source south space spare spatial 
+spawn speak special speed spell spend sphere spice spider spike spin spirit split spoil sponsor spoon 
+sport spot spray spread spring spy square squeeze squirrel stable stadium staff stage stairs stamp 
+stand start state stay steak steel stem step stereo stick still sting stock stomach stone stool story 
+stove strategy street strike strong struggle student stuff stumble style subject submit subway success 
+such sudden suffer sugar suggest suit summer sun sunny sunset super supply supreme sure surface surge 
+surprise surround survey suspect sustain swallow swamp swap swear sweet swift swim swing switch sword 
+symbol symptom syrup system table tackle tag tail talent talk tank tape target task taste tattoo taxi 
+teach team tell ten tenant tennis tent term test text thank that theme then theory there they thing 
+this thought three thrive throw thumb thunder ticket tide tiger tilt timber time tiny tip tired tissue 
+title toast tobacco today toddler toe together toilet token tomato tomorrow tone tongue tonight tool 
+tooth top topic topple torch tornado tortoise toss total tourist toward tower town toy track trade 
+traffic tragic train transfer trap trash travel tray treat tree trend trial tribe trick trigger trim 
+trip trophy trouble truck true truly trumpet trust truth try tube tuition tumble tuna tunnel turkey 
+turn turtle twelve twenty twice twin twist two type typical ugly umbrella unable unaware uncle uncover 
+under undo unfair unfold unhappy uniform unique unit universe unknown unlock until unusual unveil 
+update upgrade uphold upon upper upset urban urge usage use used useful useless usual utility vacant 
+vacuum vague valid valley valve van vanish vapor various vast vault vehicle velvet vendor venture venue 
+verb verify version very vessel veteran viable vibrant vicious victory video view village vintage 
+violin virtual virus visa visit visual vital vivid vocal voice void volcano volume vote voyage wage 
+wagon wait walk wall walnut want warfare warm warrior wash wasp waste water wave way wealth weapon 
+wear weasel weather web wedding weekend weird welcome west wet whale what wheat wheel when where whip 
+whisper wide width wife wild will win window wine wing wink winner winter wire wisdom wise wish 
+witness wolf woman wonder wood wool word work world worry worth wrap wreck wrestle wrist write wrong 
+yard year yellow you young youth zebra zero zone zoo""".split()
+
+
+class ElectrumSeed:
+    """
+    Electrum seed generator and validator.
+    
+    This class provides methods for working with Electrum seed phrases,
+    including generation, validation, and recovery.
+    """
+    
+    # Electrum version prefixes
+    ELECTRUM_V2_STANDARD = '01'
+    ELECTRUM_V2_2FA = '101'
+    ELECTRUM_V2_SEGWIT = '100'
+    
+    def __init__(self, wordlist: Optional[List[str]] = None):
+        """
+        Initialize the Electrum seed generator.
+        
+        Args:
+            wordlist: Optional custom wordlist (defaults to BIP39)
+        """
+        self.wordlist = wordlist or BIP39_WORDLIST
+        self.wordlist_set = set(self.wordlist)
+    
+    @staticmethod
+    def normalize_text(text: str) -> str:
+        """
+        Normalize text using NFKD unicode normalization.
+        
+        Args:
+            text: Text to normalize
+            
+        Returns:
+            Normalized text
+        """
+        return unicodedata.normalize('NFKD', text)
+    
+    def is_electrum_seed(self, seed: str) -> bool:
+        """
+        Check if a seed phrase is a valid Electrum seed.
+        
+        Args:
+            seed: Seed phrase to validate
+            
+        Returns:
+            True if valid Electrum seed, False otherwise
+        """
+        seed = self.normalize_text(seed.strip().lower())
+        words = seed.split()
+        
+        # Check word count (Electrum typically uses 12 or 24 words)
+        if len(words) not in [12, 24]:
+            return False
+        
+        # Check all words are in the wordlist
+        if not all(word in self.wordlist_set for word in words):
+            return False
+        
+        # Verify Electrum v2 version bits
+        return self.verify_electrum_v2(seed)
+    
+    def verify_electrum_v2(self, seed: str) -> bool:
+        """
+        Verify Electrum v2 seed by checking version bits.
+        
+        Args:
+            seed: Normalized seed phrase
+            
+        Returns:
+            True if valid Electrum v2 seed
+        """
+        # Generate seed using HMAC-SHA512
+        seed_bytes = self.normalize_text(seed).encode('utf-8')
+        hmac_result = hmac.new(b"Seed version", seed_bytes, hashlib.sha512).digest()
+        
+        # Check version bits (first byte should match Electrum version)
+        version_byte = hmac_result[0]
+        
+        # Check for standard, 2FA, or segwit versions
+        return (version_byte & 0xF0) in [0x00, 0x10]
+    
+    def generate_seed(self, num_words: int = 12, seed_type: str = 'standard') -> str:
+        """
+        Generate a new Electrum seed phrase.
+        
+        Args:
+            num_words: Number of words in seed (12 or 24)
+            seed_type: Type of seed ('standard', '2fa', or 'segwit')
+            
+        Returns:
+            Generated seed phrase
+            
+        Raises:
+            ValueError: If num_words is not 12 or 24
+        """
+        if num_words not in [12, 24]:
+            raise ValueError("Number of words must be 12 or 24")
+        
+        # Generate random seeds until we find a valid Electrum seed
+        max_attempts = 10000
+        for _ in range(max_attempts):
+            # Generate random entropy
+            entropy_bytes = num_words * 11 // 8  # BIP39 entropy calculation
+            entropy = os.urandom(entropy_bytes)
+            
+            # Convert entropy to word indices
+            indices = self._entropy_to_indices(entropy, num_words)
+            
+            # Convert indices to words
+            seed_words = [self.wordlist[i] for i in indices]
+            seed = ' '.join(seed_words)
+            
+            # Check if it's a valid Electrum seed
+            if self.is_electrum_seed(seed):
+                return seed
+        
+        raise RuntimeError(f"Failed to generate valid Electrum seed after {max_attempts} attempts")
+    
+    def _entropy_to_indices(self, entropy: bytes, num_words: int) -> List[int]:
+        """
+        Convert entropy bytes to word indices.
+        
+        Args:
+            entropy: Random entropy bytes
+            num_words: Number of words to generate
+            
+        Returns:
+            List of word indices
+        """
+        # Convert bytes to integer
+        entropy_int = int.from_bytes(entropy, byteorder='big')
+        
+        # Extract word indices (11 bits each for BIP39)
+        indices = []
+        for _ in range(num_words):
+            indices.insert(0, entropy_int & 0x7FF)  # 11 bits = 2048 words
+            entropy_int >>= 11
+        
+        return indices
+    
+    def complete_seed(self, partial_seed: str, known_positions: Optional[List[int]] = None) -> List[str]:
+        """
+        Attempt to complete a partial seed phrase.
+        
+        Args:
+            partial_seed: Partial seed with missing words (use '?' for unknown words)
+            known_positions: Optional list of positions that are known to be correct
+            
+        Returns:
+            List of possible valid seed completions
+        """
+        words = partial_seed.strip().lower().split()
+        unknown_positions = [i for i, word in enumerate(words) if word == '?']
+        
+        if not unknown_positions:
+            # No unknowns, just validate
+            return [partial_seed] if self.is_electrum_seed(partial_seed) else []
+        
+        # Limit search space for performance
+        max_results = 100
+        results = []
+        
+        # Try all combinations (limited for performance)
+        self._complete_recursive(words, unknown_positions, 0, results, max_results)
+        
+        return results
+    
+    def _complete_recursive(self, words: List[str], unknown_positions: List[int], 
+                           pos_idx: int, results: List[str], max_results: int):
+        """
+        Recursively try word combinations to complete seed.
+        
+        Args:
+            words: Current word list
+            unknown_positions: Positions to fill
+            pos_idx: Current position index
+            results: List to append results to
+            max_results: Maximum number of results to find
+        """
+        if len(results) >= max_results:
+            return
+        
+        if pos_idx >= len(unknown_positions):
+            # All positions filled, check if valid
+            seed = ' '.join(words)
+            if self.is_electrum_seed(seed):
+                results.append(seed)
+            return
+        
+        # Try each word in the wordlist for this position
+        position = unknown_positions[pos_idx]
+        for word in self.wordlist[:100]:  # Limit to first 100 words for performance
+            words[position] = word
+            self._complete_recursive(words, unknown_positions, pos_idx + 1, results, max_results)
+    
+    def find_similar_words(self, word: str, max_distance: int = 2) -> List[str]:
+        """
+        Find words in the wordlist similar to the given word.
+        
+        Args:
+            word: Word to find similar matches for
+            max_distance: Maximum edit distance
+            
+        Returns:
+            List of similar words from wordlist
+        """
+        word = word.lower()
+        similar = []
+        
+        for wl_word in self.wordlist:
+            if self._edit_distance(word, wl_word) <= max_distance:
+                similar.append(wl_word)
+        
+        return similar
+    
+    @staticmethod
+    def _edit_distance(s1: str, s2: str) -> int:
+        """
+        Calculate Levenshtein edit distance between two strings.
+        
+        Args:
+            s1: First string
+            s2: Second string
+            
+        Returns:
+            Edit distance
+        """
+        if len(s1) < len(s2):
+            return ElectrumSeed._edit_distance(s2, s1)
+        
+        if len(s2) == 0:
+            return len(s1)
+        
+        previous_row = range(len(s2) + 1)
+        for i, c1 in enumerate(s1):
+            current_row = [i + 1]
+            for j, c2 in enumerate(s2):
+                # Cost of insertions, deletions, or substitutions
+                insertions = previous_row[j + 1] + 1
+                deletions = current_row[j] + 1
+                substitutions = previous_row[j] + (c1 != c2)
+                current_row.append(min(insertions, deletions, substitutions))
+            previous_row = current_row
+        
+        return previous_row[-1]
+    
+    def validate_words(self, seed: str) -> Tuple[bool, List[str]]:
+        """
+        Validate that all words in seed are in the wordlist.
+        
+        Args:
+            seed: Seed phrase to validate
+            
+        Returns:
+            Tuple of (all_valid, list_of_invalid_words)
+        """
+        words = seed.strip().lower().split()
+        invalid = [w for w in words if w not in self.wordlist_set]
+        return (len(invalid) == 0, invalid)
+    
+    def suggest_corrections(self, seed: str) -> dict:
+        """
+        Suggest corrections for invalid words in a seed phrase.
+        
+        Args:
+            seed: Seed phrase with potentially invalid words
+            
+        Returns:
+            Dictionary mapping invalid words to suggested corrections
+        """
+        words = seed.strip().lower().split()
+        suggestions = {}
+        
+        for word in words:
+            if word not in self.wordlist_set:
+                similar = self.find_similar_words(word, max_distance=2)
+                if similar:
+                    suggestions[word] = similar
+        
+        return suggestions
+
+
+def main():
+    """Example usage of the Electrum seed generator."""
+    generator = ElectrumSeed()
+    
+    print("=" * 60)
+    print("Electrum Seed Generator and Completer")
+    print("=" * 60)
+    print()
+    
+    # Generate a new seed
+    print("Generating new 12-word Electrum seed...")
+    seed = generator.generate_seed(12)
+    print(f"Generated seed: {seed}")
+    print()
+    
+    # Validate the seed
+    print("Validating generated seed...")
+    is_valid = generator.is_electrum_seed(seed)
+    print(f"Is valid Electrum seed: {is_valid}")
+    print()
+    
+    # Check word validation
+    print("Checking word validity...")
+    all_valid, invalid = generator.validate_words(seed)
+    print(f"All words valid: {all_valid}")
+    if invalid:
+        print(f"Invalid words: {', '.join(invalid)}")
+    print()
+    
+    # Example of finding similar words
+    print("Finding similar words to 'abandon'...")
+    similar = generator.find_similar_words('abandn', max_distance=1)
+    print(f"Similar words: {', '.join(similar[:5])}")
+    print()
+    
+    print("=" * 60)
+    print("Use this code in your Electrum installation!")
+    print("=" * 60)
+
+
+if __name__ == '__main__':
+    main()

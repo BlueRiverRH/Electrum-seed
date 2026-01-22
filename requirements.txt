@@ -1,0 +1,7 @@
+# No external dependencies required
+# This project uses only Python standard library
+
+# For development and testing, you may want:
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=4.0.0
