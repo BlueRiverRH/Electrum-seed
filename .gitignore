@@ -51,3 +51,7 @@ htmlcov/
 *.bak
 .tmp/
 tmp/
+
+# Scanner output files
+found_weaknesses_daily.txt
+last_processed_block.txt

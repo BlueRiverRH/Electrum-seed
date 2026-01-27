@@ -1,5 +1,8 @@
-# No external dependencies required
-# This project uses only Python standard library
+# No external dependencies required for core seed functionality
+# This project uses only Python standard library for seed generation
+
+# Optional dependencies for blockchain analysis:
+# bitcoinlib>=0.6.0  # For enhanced transaction parsing (optional)
 
 # For development and testing, you may want:
 # pytest>=7.0.0

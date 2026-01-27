@@ -2,14 +2,23 @@
 
 The only true Electrum seed generator and completer that is fully open source. This Python code can be inserted into a cloned version of Electrum for enhanced seed management capabilities.
 
+**NEW:** Includes Bitcoin transaction weakness scanner for detecting R-value reuse in ECDSA signatures.
+
 ## Features
 
+### Seed Management
 - **Generate New Seeds**: Create valid Electrum-compatible seed phrases (12 or 24 words)
 - **Validate Seeds**: Verify if a seed phrase is a valid Electrum seed
 - **Complete Partial Seeds**: Attempt to recover seeds with missing words
 - **Typo Correction**: Find similar words to correct typos in seed phrases
 - **Word Validation**: Check if all words are in the BIP39 wordlist
 - **Seed Utilities**: Convert seeds to binary, mask for display, and more
+
+### Blockchain Security Analysis (New!)
+- **Transaction Weakness Scanner**: Detect R-value reuse in Bitcoin ECDSA signatures
+- **Daily Transaction Scanning**: Process recent blocks first, then work backwards
+- **Checkpoint System**: Resume scanning from where you left off
+- **Weakness Reporting**: Automatically save detected vulnerabilities
 
 ## Installation
 
@@ -122,6 +131,36 @@ seed = "abandon abandon abandon abandon abandon abandon abandon abandon abandon 
 masked = mask_seed(seed, [4, 5, 6], mask="****")
 print(format_seed_for_display(masked))
 ```
+
+### Scan for Bitcoin Transaction Weaknesses
+
+The `scan_btc_weakness.py` script scans the Bitcoin blockchain for R-value reuse in ECDSA signatures:
+
+```bash
+# Run the weakness scanner
+python3 scan_btc_weakness.py
+```
+
+Features:
+- Scans recent blocks first (daily transactions)
+- Works backwards through blockchain as bandwidth allows
+- Maintains checkpoint file to resume scanning
+- Saves detected weaknesses to `found_weaknesses_daily.txt`
+- Automatically detects R-value reuse across different transactions
+
+Example output:
+```
+[INFO] Bitcoin Transaction Weakness Scanner
+[INFO] Starting scan from block 934019 down to 933969
+[INFO] Scanning block 934019
+[ALERT] R-VALUE REUSE DETECTED!
+[ALERT] R-value: 3045022100abc123...
+[ALERT] Used in 2 different signatures:
+[ALERT]   - Transaction: txid1..., Input: 0
+[ALERT]   - Transaction: txid2..., Input: 1
+```
+
+**Security Note**: R-value reuse in ECDSA signatures is a critical vulnerability that can expose private keys. This tool helps identify such weaknesses in the blockchain.
 
 ## Integration with Electrum
 
