@@ -294,6 +294,53 @@ This software is provided "as is" without warranty of any kind. Users are respon
 - [BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) - Bitcoin mnemonic code standard
 - [bip-utils](https://github.com/ebellocchia/bip_utils) - Python library for BIP utilities
 
+## Repository Contents
+
+### Seed Generation & Management
+- `electrum_seed.py` - Core seed generator and validator (25KB)
+- `seed_utils.py` - Utility functions for seed operations (7KB)
+- `example.py` - Usage examples and demos (6.2KB)
+- `test_electrum_seed.py` - Test suite for seed functionality (6.2KB)
+
+### Blockchain Security Analysis
+- `scan_btc_weakness.py` - Bitcoin transaction weakness scanner (16KB)
+- `analyze_blockchain.py` - Basic blockchain analyzer (8.2KB)
+- `test_weakness_scanner.py` - Scanner test suite with demos (5.8KB)
+
+### Documentation
+- `README.md` - Main documentation (this file)
+- `QUICKSTART.md` - Quick start guide for scanner
+- `SCANNER_GUIDE.md` - Complete technical documentation
+- `INTEGRATION.md` - Electrum integration guide
+
+**Total:** 7 Python scripts, 4 documentation files, ~3,300 lines of code
+
+## Quick Links
+
+- 📖 [Scanner Quick Start](QUICKSTART.md) - Get started with blockchain analysis
+- 📚 [Scanner Guide](SCANNER_GUIDE.md) - Complete technical documentation
+- 🔧 [Integration Guide](INTEGRATION.md) - How to integrate with Electrum
+- 🧪 [Run Tests](#testing) - Test seed generation and scanning
+
+## Testing
+
+### Test Seed Generation
+```bash
+python3 test_electrum_seed.py
+```
+
+### Test Blockchain Scanner
+```bash
+python3 test_weakness_scanner.py
+```
+
+### Run Example Demos
+```bash
+python3 example.py
+```
+
+All tests should pass with no errors!
+
 ## Support
 
 For issues, questions, or suggestions, please open an issue on GitHub.
